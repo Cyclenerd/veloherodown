@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+
+#
+# Create a local copy of your Velo Hero <http://www.velohero.com/> data.
+#
+# See instructions at https://github.com/cyclenerd/veloherodown
+#
+
+set -e
+
+# script name
+PROG=$(basename "$0")
+# current timestamp
+MY_TIMESTAMP=$(date -u "+%s")
+
+function echo_sso_key_help {
+	echo
+	echo "To use the '$PROG' script, please go to https://app.velohero.com/sso"
+	echo "and get yourself a private single sign-on key. That's the long string."
+	echo
+	echo "Then create a file '$HOME/.veloherorc' containing"
+	echo
+	echo "----- snip -------------------------------------------------------------"
+	echo
+	echo "VELOHERO_SSO_KEY=[insert your own]"
+	echo
+	echo "----- snap -------------------------------------------------------------"
+	echo
+	echo "Important: Do not use spaces!"
+	echo
+	exit 1
+}
+
+function echo_export_dir_help {
+	echo
+	echo "Please specify in the file '$HOME/.veloherorc' the location for the export."
+	echo
+	echo "----- snip -------------------------------------------------------------"
+	echo
+	echo "VELOHERO_EXPORT_DIR=[specify location for export]"
+	echo
+	echo "----- snap -------------------------------------------------------------"
+	echo
+	echo "Important: Do not use spaces!"
+	echo
+	exit 1
+}
+
+function exit_with_failure() {
+	echo
+	echo "FAILURE: $1"
+	echo
+	exit 9
+}
+
+function check_sso_login() {
+	if ! curl "https://app.velohero.com/sso" -F sso="$VELOHERO_SSO_KEY" -F view="json" -o "/dev/null" --silent --fail; then
+		exit_with_failure "Login failed! Single Sign-on key not found or expired. Please get a new one."
+	fi
+}
+
+function export_activity_pwx() {
+	curl "https://app.velohero.com/export/activity/pwx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.pwx" --fail
+}
+
+function export_activity_json() {
+	curl "https://app.velohero.com/export/activity/json/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.json" --fail
+}
+
+
+# Check the configuration file
+if [ ! -f "$HOME/.veloherorc" ]; then
+	echo_sso_key_help
+fi
+
+# Load configuration file
+source "$HOME/.veloherorc"
+
+# Test a few things
+[ "$VELOHERO_SSO_KEY" ] || echo_sso_key_help
+[ "$VELOHERO_EXPORT_DIR" ] || echo_export_dir_help
+[ -d "$VELOHERO_EXPORT_DIR" ] || exit_with_failure "Folder '$VELOHERO_EXPORT_DIR' for exports not found. Please create it."
+[ -w "$VELOHERO_EXPORT_DIR" ] || exit_with_failure "Can not write to folder '$VELOHERO_EXPORT_DIR'. Please correct this."
+
+# File with the specification of the last export
+VELOHERO_LAST_EXPORT="$VELOHERO_EXPORT_DIR/.velohero_last_export.do_not_remove"
+# Get timestamp from last export
+if [ -f "$VELOHERO_LAST_EXPORT" ]; then
+	source "$VELOHERO_LAST_EXPORT"
+else
+	if ! echo "VELOHERO_LAST_TIMESTAMP=0" > "$VELOHERO_LAST_EXPORT"; then
+		exit_with_failure "Can not write file '$VELOHERO_LAST_EXPORT'. The last download will be noted in this file."
+	fi
+fi
+[ "$VELOHERO_LAST_TIMESTAMP" ] || VELOHERO_LAST_TIMESTAMP=0
+
+# Check login
+check_sso_login
+
+# Get list
+VELOHERO_EXPORT_LIST="$VELOHERO_EXPORT_DIR/.velohero_export_workouts.csv"
+echo "Get list of files. Please wait..."
+if curl "https://app.velohero.com/export/workouts/csv" -F sso="$VELOHERO_SSO_KEY" -F last_change_epoch="$VELOHERO_LAST_TIMESTAMP" -o "$VELOHERO_EXPORT_LIST" --fail; then
+	# Add new line
+	echo >> "$VELOHERO_EXPORT_LIST"
+	echo
+else
+	exit_with_failure "Can not download list of files to be exported."
+fi
+
+# Count workouts
+VH_WORKOUT_COUNT=0
+while IFS=';' read -r VH_WORKOUT_ID VH_WORKOUT_DATE || [[ -n "$VH_WORKOUT_MISC" ]]; do
+	if [[ "$VH_WORKOUT_ID" =~ ^[0-9]+$ ]]; then
+		VH_WORKOUT_COUNT="$((VH_WORKOUT_COUNT+1))"
+	fi
+done <"$VELOHERO_EXPORT_LIST"
+
+if [ "$VH_WORKOUT_COUNT" -eq "0" ]; then
+	echo
+	echo "Done. No new files."
+	echo
+	exit
+fi
+
+# Download workout file
+VH_DOWNLOAD_COUNT=0
+while IFS=';' read -r VH_WORKOUT_ID VH_WORKOUT_DATE VH_WORKOUT_STARTTIME VH_WORKOUT_DURATION || [[ -n "$VH_WORKOUT_MISC" ]]; do
+	if [[ "$VH_WORKOUT_ID" =~ ^[0-9]+$ ]]; then
+		VH_DOWNLOAD_COUNT="$((VH_DOWNLOAD_COUNT+1))"
+		echo "Download file $VH_DOWNLOAD_COUNT of $VH_WORKOUT_COUNT with ID $VH_WORKOUT_ID ($VH_WORKOUT_DATE $VH_WORKOUT_STARTTIME). Please wait..."
+		# JSON export (all data except laps and comments from other users)
+		export_activity_json "$VH_WORKOUT_ID"
+		# PWX export (The recording with laps. Can be processed by Golden Cheetah.)
+		export_activity_pwx "$VH_WORKOUT_ID"
+		echo
+	fi
+done <"$VELOHERO_EXPORT_LIST"
+
+# Save last export timestamp
+echo "VELOHERO_LAST_TIMESTAMP=$MY_TIMESTAMP" > "$VELOHERO_LAST_EXPORT"
+
+# Clean up
+rm "$VELOHERO_EXPORT_LIST" &> "/dev/null"
+
+echo
+echo "Done. All downloaded."
+echo
