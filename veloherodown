@@ -12,6 +12,8 @@ set -e
 PROG=$(basename "$0")
 # current timestamp
 MY_TIMESTAMP=$(date -u "+%s")
+# User-Agent string
+MY_USERAGENT="veloherodown/1.0"
 
 function echo_sso_key_help {
 	echo
@@ -54,17 +56,17 @@ function exit_with_failure() {
 }
 
 function check_sso_login() {
-	if ! curl "https://app.velohero.com/sso" -F sso="$VELOHERO_SSO_KEY" -F view="json" -o "/dev/null" --silent --fail; then
+	if ! curl "https://app.velohero.com/sso" -F sso="$VELOHERO_SSO_KEY" -F view="json" -o "/dev/null" --silent --fail -A "$MY_USERAGENT" --compressed; then
 		exit_with_failure "Login failed! Single Sign-on key not found or expired. Please get a new one."
 	fi
 }
 
 function export_activity_pwx() {
-	curl "https://app.velohero.com/export/activity/pwx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.pwx" --fail
+	curl "https://app.velohero.com/export/activity/pwx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.pwx" --fail -A "$MY_USERAGENT" --compressed
 }
 
 function export_activity_json() {
-	curl "https://app.velohero.com/export/activity/json/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.json" --fail
+	curl "https://app.velohero.com/export/activity/json/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.json" --fail -A "$MY_USERAGENT" --compressed
 }
 
 
@@ -100,7 +102,7 @@ check_sso_login
 # Get list
 VELOHERO_EXPORT_LIST="$VELOHERO_EXPORT_DIR/.velohero_export_workouts.csv"
 echo "Get list of files. Please wait..."
-if curl "https://app.velohero.com/export/workouts/csv" -F sso="$VELOHERO_SSO_KEY" -F last_change_epoch="$VELOHERO_LAST_TIMESTAMP" -o "$VELOHERO_EXPORT_LIST" --fail; then
+if curl "https://app.velohero.com/export/workouts/csv" -F sso="$VELOHERO_SSO_KEY" -F last_change_epoch="$VELOHERO_LAST_TIMESTAMP" -o "$VELOHERO_EXPORT_LIST" --fail -A "$MY_USERAGENT" --compressed; then
 	# Add new line
 	echo >> "$VELOHERO_EXPORT_LIST"
 	echo
