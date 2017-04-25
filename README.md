@@ -1,6 +1,6 @@
 # veloherodown
 
-Create a local copy of your [Velo Hero](http://www.velohero.com/) data.
+Create a local copy of your [Velo Hero](https://www.velohero.com/) data.
 
 ![Velo Hero Logo](https://www.velohero.com/static/touchicon.png)
 
