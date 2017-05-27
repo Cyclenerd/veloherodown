@@ -15,6 +15,11 @@ MY_TIMESTAMP=$(date -u "+%s")
 # User-Agent string
 MY_USERAGENT="veloherodown/1.0"
 
+
+#####################################################################
+# Usage
+#####################################################################
+
 function echo_sso_key_help {
 	echo
 	echo "To use the '$PROG' script, please go to https://app.velohero.com/sso"
@@ -48,6 +53,12 @@ function echo_export_dir_help {
 	exit 1
 }
 
+
+#####################################################################
+# Terminal output helpers
+#####################################################################
+
+# exit_with_failure() outputs a message before exiting the script.
 function exit_with_failure() {
 	echo
 	echo "FAILURE: $1"
@@ -55,42 +66,54 @@ function exit_with_failure() {
 	exit 9
 }
 
+
+#####################################################################
+# Other helpers
+#####################################################################
+
+# check_sso_login() checks the login
 function check_sso_login() {
 	if ! curl "https://app.velohero.com/sso" -F sso="$VELOHERO_SSO_KEY" -F view="json" -o "/dev/null" --silent --fail -A "$MY_USERAGENT" --compressed; then
 		exit_with_failure "Login failed! Single Sign-on key not found or expired. Please get a new one."
 	fi
 }
 
-# JSON with all details except comments from other users (best export for local backup!)
+# export_activity_json() downloads JSON file with all details except comments from other users (best export for local backup!)
 function export_activity_json() {
 	curl "https://app.velohero.com/export/activity/json/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.json" --fail -A "$MY_USERAGENT" --compressed
 }
 
-# Training Peaks PWX with laps (can be processed by Golden Cheetah)
+# export_activity_pwx() downloads Training Peaks PWX file with laps (can be processed by Golden Cheetah)
 function export_activity_pwx() {
 	curl "https://app.velohero.com/export/activity/pwx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.pwx" --fail -A "$MY_USERAGENT" --compressed
 }
 
-# CSV
+# export_activity_csv() downloads CSV file
 function export_activity_csv() {
 	curl "https://app.velohero.com/export/activity/csv/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.csv" --fail -A "$MY_USERAGENT" --compressed
 }
 
-# GPX (only the geo coordinates)
+# export_activity_gpx() downloads GPX file (only the geo coordinates)
 function export_activity_gpx() {
 	curl "https://app.velohero.com/export/activity/gpx/$1" -F geo_only="1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.gpx" --fail -A "$MY_USERAGENT" --compressed
 }
 
-# Google Earth KML
+# export_activity_kml() downloads Google Earth KML file
 function export_activity_kml() {
 	curl "https://app.velohero.com/export/activity/kml/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.kml" --fail -A "$MY_USERAGENT" --compressed
 }
 
-# Garmin TCX
+# export_activity_tcx() downloads Garmin TCX file
 function export_activity_tcx() {
 	curl "https://app.velohero.com/export/activity/tcx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.tcx" --fail -A "$MY_USERAGENT" --compressed
 }
 
+
+
+
+#####################################################################
+# Let's start
+#####################################################################
 
 # Check the configuration file
 if [ ! -f "$HOME/.veloherorc" ]; then
