@@ -61,12 +61,29 @@ function check_sso_login() {
 	fi
 }
 
+# JSON with all details except comments from other users (best export for local backup!)
+function export_activity_json() {
+	curl "https://app.velohero.com/export/activity/json/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.json" --fail -A "$MY_USERAGENT" --compressed
+}
+
+# Training Peaks PWX with laps (can be processed by Golden Cheetah)
 function export_activity_pwx() {
 	curl "https://app.velohero.com/export/activity/pwx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.pwx" --fail -A "$MY_USERAGENT" --compressed
 }
 
-function export_activity_json() {
-	curl "https://app.velohero.com/export/activity/json/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.json" --fail -A "$MY_USERAGENT" --compressed
+# CSV
+function export_activity_csv() {
+	curl "https://app.velohero.com/export/activity/csv/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.csv" --fail -A "$MY_USERAGENT" --compressed
+}
+
+# Google Earth KML
+function export_activity_kml() {
+	curl "https://app.velohero.com/export/activity/kml/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.kml" --fail -A "$MY_USERAGENT" --compressed
+}
+
+# Garmin TCX
+function export_activity_tcx() {
+	curl "https://app.velohero.com/export/activity/tcx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.tcx" --fail -A "$MY_USERAGENT" --compressed
 }
 
 
@@ -131,10 +148,14 @@ while IFS=';' read -r VH_WORKOUT_ID VH_WORKOUT_DATE VH_WORKOUT_STARTTIME VH_WORK
 	if [[ "$VH_WORKOUT_ID" =~ ^[0-9]+$ ]]; then
 		VH_DOWNLOAD_COUNT="$((VH_DOWNLOAD_COUNT+1))"
 		echo "Download file $VH_DOWNLOAD_COUNT of $VH_WORKOUT_COUNT with ID $VH_WORKOUT_ID ($VH_WORKOUT_DATE $VH_WORKOUT_STARTTIME). Please wait..."
-		# JSON export (all data except laps and comments from other users)
+		# Export
 		export_activity_json "$VH_WORKOUT_ID"
-		# PWX export (The recording with laps. Can be processed by Golden Cheetah.)
 		export_activity_pwx "$VH_WORKOUT_ID"
+		# More export formats. Remove comment if you want to use it.
+		#export_activity_csv "$VH_WORKOUT_ID"
+		#export_activity_tcx "$VH_WORKOUT_ID"
+		#export_activity_gpx "$VH_WORKOUT_ID"
+		#export_activity_kml "$VH_WORKOUT_ID"
 		echo
 	fi
 done <"$VELOHERO_EXPORT_LIST"
