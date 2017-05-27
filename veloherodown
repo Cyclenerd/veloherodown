@@ -76,6 +76,11 @@ function export_activity_csv() {
 	curl "https://app.velohero.com/export/activity/csv/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.csv" --fail -A "$MY_USERAGENT" --compressed
 }
 
+# GPX (only the geo coordinates)
+function export_activity_gpx() {
+	curl "https://app.velohero.com/export/activity/gpx/$1" -F geo_only="1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.gpx" --fail -A "$MY_USERAGENT" --compressed
+}
+
 # Google Earth KML
 function export_activity_kml() {
 	curl "https://app.velohero.com/export/activity/kml/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.kml" --fail -A "$MY_USERAGENT" --compressed

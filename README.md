@@ -40,6 +40,7 @@ Start export:
 In addition to PWX and JSON, there are other export formats:
 
 * CSV
+* GPX
 * Google Earth KML
 * Garmin TCX
 
