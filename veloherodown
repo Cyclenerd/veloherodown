@@ -71,6 +71,18 @@ function exit_with_failure() {
 # Other helpers
 #####################################################################
 
+# command_exists() tells if a given command exists.
+function command_exists() {
+	command -v "$1" >/dev/null 2>&1
+}
+
+# check_command() check if command exists and exit if not exists
+function check_command() {
+	if ! command_exists "$1"; then
+		exit_with_failure "Command '$1' not found. Please check and install dependency."
+	fi
+}
+
 # check_sso_login() checks the login
 function check_sso_login() {
 	if ! curl "https://app.velohero.com/sso" -F sso="$VELOHERO_SSO_KEY" -F view="json" -o "/dev/null" --silent --fail -A "$MY_USERAGENT" --compressed; then
@@ -109,11 +121,11 @@ function export_activity_tcx() {
 }
 
 
-
-
 #####################################################################
 # Let's start
 #####################################################################
+
+check_command "curl"
 
 # Check the configuration file
 if [ ! -f "$HOME/.veloherorc" ]; then
