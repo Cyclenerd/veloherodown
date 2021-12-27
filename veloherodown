@@ -90,34 +90,20 @@ function check_sso_login() {
 	fi
 }
 
-# export_activity_json() downloads JSON file with all details except comments from other users (best export for local backup!)
-function export_activity_json() {
-	curl "https://app.velohero.com/export/activity/json/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.json" --fail -A "$MY_USERAGENT" --compressed
-}
-
-# export_activity_pwx() downloads Training Peaks PWX file with laps (can be processed by Golden Cheetah)
-function export_activity_pwx() {
-	curl "https://app.velohero.com/export/activity/pwx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.pwx" --fail -A "$MY_USERAGENT" --compressed
-}
-
-# export_activity_csv() downloads CSV file
-function export_activity_csv() {
-	curl "https://app.velohero.com/export/activity/csv/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.csv" --fail -A "$MY_USERAGENT" --compressed
-}
-
-# export_activity_gpx() downloads GPX file (only the geo coordinates)
-function export_activity_gpx() {
-	curl "https://app.velohero.com/export/activity/gpx/$1" -F geo_only="1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.gpx" --fail -A "$MY_USERAGENT" --compressed
-}
-
-# export_activity_kml() downloads Google Earth KML file
-function export_activity_kml() {
-	curl "https://app.velohero.com/export/activity/kml/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.kml" --fail -A "$MY_USERAGENT" --compressed
-}
-
-# export_activity_tcx() downloads Garmin TCX file
-function export_activity_tcx() {
-	curl "https://app.velohero.com/export/activity/tcx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.tcx" --fail -A "$MY_USERAGENT" --compressed
+# export_activity() downloads workout to a file in a specific format
+#   $1: workout_id
+#   $2: export format
+#     json: with all details except comments from other users (best export for local backup!)
+#     pwx:  Training Peaks PWX file with laps (can be processed by Golden Cheetah)
+#     csv:  CSV file
+#     gpx:  GPX file (only the geo coordinates)
+#     kml:  Google Earth KML file
+#     tcx:  Garmin TCX file
+function export_activity() { # $1: workoutId, $2: export format
+	local WORKOUT_ID="$1" FORMAT="$2"
+	local EXPORT_FILE="$VELOHERO_EXPORT_DIR/$WORKOUT_ID.$FORMAT"
+	[ -e "$EXPORT_FILE" ] || \	# skip download if already exists
+	curl "https://app.velohero.com/export/activity/$FORMAT/$WORKOUT_ID" -F sso="$VELOHERO_SSO_KEY" -o "$EXPORT_FILE" --fail -A "$MY_USERAGENT" --compressed -C - --retry 3
 }
 
 
@@ -189,13 +175,13 @@ while IFS=';' read -r VH_WORKOUT_ID VH_WORKOUT_DATE VH_WORKOUT_STARTTIME VH_WORK
 		VH_DOWNLOAD_COUNT="$((VH_DOWNLOAD_COUNT+1))"
 		echo "Download file $VH_DOWNLOAD_COUNT of $VH_WORKOUT_COUNT with ID $VH_WORKOUT_ID ($VH_WORKOUT_DATE $VH_WORKOUT_STARTTIME). Please wait..."
 		# Export
-		export_activity_json "$VH_WORKOUT_ID"
-		export_activity_pwx "$VH_WORKOUT_ID"
+		export_activity "$VH_WORKOUT_ID" 'json'
+		export_activity "$VH_WORKOUT_ID" 'pwx'
 		# More export formats. Remove comment if you want to use it.
-		#export_activity_csv "$VH_WORKOUT_ID"
-		#export_activity_tcx "$VH_WORKOUT_ID"
-		#export_activity_gpx "$VH_WORKOUT_ID"
-		#export_activity_kml "$VH_WORKOUT_ID"
+		#export_activity "$VH_WORKOUT_ID" 'csv'
+		#export_activity "$VH_WORKOUT_ID" 'tcx'
+		#export_activity "$VH_WORKOUT_ID" 'gpx'
+		#export_activity "$VH_WORKOUT_ID" 'kml'
 		echo
 	fi
 done <"$VELOHERO_EXPORT_LIST"
