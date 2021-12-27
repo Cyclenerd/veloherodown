@@ -91,7 +91,7 @@ function export_activity() { # $1: workoutId, $2: export format
 	local WORKOUT_ID="$1" FORMAT="$2"
 	local EXPORT_FILE="$VELOHERO_EXPORT_DIR/$WORKOUT_ID.$FORMAT"
 	[ -e "$EXPORT_FILE" ] || \	# skip download if already exists
-	$VELOHERO_CURL "https://app.velohero.com/export/activity/$FORMAT/$WORKOUT_ID" -F sso="$VELOHERO_SSO_KEY" -o "$EXPORT_FILE" --fail -A "$MY_USERAGENT" --compressed -C - --retry 3
+	curl "https://app.velohero.com/export/activity/$FORMAT/$WORKOUT_ID" -F sso="$VELOHERO_SSO_KEY" -o "$EXPORT_FILE" --fail -A "$MY_USERAGENT" --compressed -C - --retry 3
 }
 
 
