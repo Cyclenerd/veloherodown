@@ -73,39 +73,39 @@ function exit_with_failure() {
 
 # check_sso_login() checks the login
 function check_sso_login() {
-	if ! curl "https://app.velohero.com/sso" -F sso="$VELOHERO_SSO_KEY" -F view="json" -o "/dev/null" --silent --fail -A "$MY_USERAGENT" --compressed; then
+	if ! $VELOHERO_CURL "https://app.velohero.com/sso" -F sso="$VELOHERO_SSO_KEY" -F view="json" -o "/dev/null" --silent --fail -A "$MY_USERAGENT" --compressed; then
 		exit_with_failure "Login failed! Single Sign-on key not found or expired. Please get a new one."
 	fi
 }
 
 # export_activity_json() downloads JSON file with all details except comments from other users (best export for local backup!)
 function export_activity_json() {
-	curl "https://app.velohero.com/export/activity/json/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.json" --fail -A "$MY_USERAGENT" --compressed
+	$VELOHERO_CURL "https://app.velohero.com/export/activity/json/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.json" --fail -A "$MY_USERAGENT" --compressed
 }
 
 # export_activity_pwx() downloads Training Peaks PWX file with laps (can be processed by Golden Cheetah)
 function export_activity_pwx() {
-	curl "https://app.velohero.com/export/activity/pwx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.pwx" --fail -A "$MY_USERAGENT" --compressed
+	$VELOHERO_CURL "https://app.velohero.com/export/activity/pwx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.pwx" --fail -A "$MY_USERAGENT" --compressed
 }
 
 # export_activity_csv() downloads CSV file
 function export_activity_csv() {
-	curl "https://app.velohero.com/export/activity/csv/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.csv" --fail -A "$MY_USERAGENT" --compressed
+	$VELOHERO_CURL "https://app.velohero.com/export/activity/csv/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.csv" --fail -A "$MY_USERAGENT" --compressed
 }
 
 # export_activity_gpx() downloads GPX file (only the geo coordinates)
 function export_activity_gpx() {
-	curl "https://app.velohero.com/export/activity/gpx/$1" -F geo_only="1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.gpx" --fail -A "$MY_USERAGENT" --compressed
+	$VELOHERO_CURL "https://app.velohero.com/export/activity/gpx/$1" -F geo_only="1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.gpx" --fail -A "$MY_USERAGENT" --compressed
 }
 
 # export_activity_kml() downloads Google Earth KML file
 function export_activity_kml() {
-	curl "https://app.velohero.com/export/activity/kml/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.kml" --fail -A "$MY_USERAGENT" --compressed
+	$VELOHERO_CURL "https://app.velohero.com/export/activity/kml/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.kml" --fail -A "$MY_USERAGENT" --compressed
 }
 
 # export_activity_tcx() downloads Garmin TCX file
 function export_activity_tcx() {
-	curl "https://app.velohero.com/export/activity/tcx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.tcx" --fail -A "$MY_USERAGENT" --compressed
+	$VELOHERO_CURL "https://app.velohero.com/export/activity/tcx/$1" -F sso="$VELOHERO_SSO_KEY" -o "$VELOHERO_EXPORT_DIR/$1.tcx" --fail -A "$MY_USERAGENT" --compressed
 }
 
 
@@ -129,6 +129,10 @@ source "$HOME/.veloherorc"
 [ -d "$VELOHERO_EXPORT_DIR" ] || exit_with_failure "Folder '$VELOHERO_EXPORT_DIR' for exports not found. Please create it."
 [ -w "$VELOHERO_EXPORT_DIR" ] || exit_with_failure "Can not write to folder '$VELOHERO_EXPORT_DIR'. Please correct this."
 
+# Check for avability of $VELOHERO_CURL
+[ "$VELOHERO_$VELOHERO_CURL" ] || VELOHERO_CURL="$(which curl 2>/dev/null)" || exit_with_failure "Can not locate curl utility. Please correct this."
+[ -x "$VELOHERO_$VELOHERO_CURL" ] || exit_with_failure "Can not execute curl utility at '$VELOHERO_CURL'. Please correct this."
+
 # File with the specification of the last export
 VELOHERO_LAST_EXPORT="$VELOHERO_EXPORT_DIR/.velohero_last_export.do_not_remove"
 # Get timestamp from last export
@@ -147,7 +151,7 @@ check_sso_login
 # Get list
 VELOHERO_EXPORT_LIST="$VELOHERO_EXPORT_DIR/.velohero_export_workouts.csv"
 echo "Get list of files. Please wait..."
-if curl "https://app.velohero.com/export/workouts/csv" -F sso="$VELOHERO_SSO_KEY" -F last_change_epoch="$VELOHERO_LAST_TIMESTAMP" -o "$VELOHERO_EXPORT_LIST" --fail -A "$MY_USERAGENT" --compressed; then
+if $VELOHERO_CURL "https://app.velohero.com/export/workouts/csv" -F sso="$VELOHERO_SSO_KEY" -F last_change_epoch="$VELOHERO_LAST_TIMESTAMP" -o "$VELOHERO_EXPORT_LIST" --fail -A "$MY_USERAGENT" --compressed; then
 	# Add new line
 	echo >> "$VELOHERO_EXPORT_LIST"
 	echo
