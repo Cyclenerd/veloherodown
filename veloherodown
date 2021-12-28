@@ -13,7 +13,11 @@ PROG=$(basename "$0")
 # current timestamp
 MY_TIMESTAMP=$(date -u "+%s")
 # User-Agent string
-MY_USERAGENT="veloherodown/1.0"
+MY_USERAGENT="veloherodown/1.1"
+# download retry count
+DOWNLOAD_RETRIES=3
+# download break time to protect server (secs) 
+DOWNLOAD_BREAKTIME=1
 
 
 #####################################################################
@@ -102,9 +106,9 @@ function check_sso_login() {
 function export_activity() { # $1: workoutId, $2: export format
 	local WORKOUT_ID="$1" FORMAT="$2"
 	local EXPORT_FILE="$VELOHERO_EXPORT_DIR/$WORKOUT_ID.$FORMAT"
-	[ -e "$EXPORT_FILE" ] || \	# skip download if already exists
-	curl "https://app.velohero.com/export/activity/$FORMAT/$WORKOUT_ID" -F sso="$VELOHERO_SSO_KEY" -o "$EXPORT_FILE" --fail -A "$MY_USERAGENT" --compressed -C - --retry 3
-	sleep 3 # wait 3sec
+	[ -e "$EXPORT_FILE" ] \
+	|| curl "https://app.velohero.com/export/activity/$FORMAT/$WORKOUT_ID" -F sso="$VELOHERO_SSO_KEY" -o "$EXPORT_FILE" --fail -A "$MY_USERAGENT" --compressed -C - --retry $DOWNLOAD_RETRIES \
+	|| sleep $DOWNLOAD_BREAKTIME skip download if already exists, give server a break after download
 }
 
 
@@ -128,6 +132,16 @@ source "$HOME/.veloherorc"
 [ -d "$VELOHERO_EXPORT_DIR" ] || exit_with_failure "Folder '$VELOHERO_EXPORT_DIR' for exports not found. Please create it."
 [ -w "$VELOHERO_EXPORT_DIR" ] || exit_with_failure "Can not write to folder '$VELOHERO_EXPORT_DIR'. Please correct this."
 
+# Get formats to export from commandline
+for FORMAT; do
+	case "$FORMAT" in
+		'json'|'pwx'|'csv'|'gpx'|'kml'|'tcx') [[ ! "$FORMATS" =~ $FORMAT ]] && FORMATS+="$FORMAT " ;;
+		*) exit_with_failure "Unknown format '$FORMAT'. Known formats are 'json', 'pwx', 'cvs', 'gpx', 'kml' and 'txc'."
+	esac
+done; FORMATS="${FORMATS:0:-1}"
+[ -z "$FORMATS" ] && FORMATS="json"
+echo "Will export data to format"$(set -- $FORMATS && [ $# -gt 1 ] && echo 's')" '$FORMATS'..."
+
 # File with the specification of the last export
 VELOHERO_LAST_EXPORT="$VELOHERO_EXPORT_DIR/.velohero_last_export.do_not_remove"
 # Get timestamp from last export
@@ -145,21 +159,19 @@ check_sso_login
 
 # Get list
 VELOHERO_EXPORT_LIST="$VELOHERO_EXPORT_DIR/.velohero_export_workouts.csv"
-echo "Get list of files. Please wait..."
+echo "Get list of workouts since $(date -d @$VELOHERO_LAST_TIMESTAMP "+%Y-%m-%d %H:%M:%S"). Please wait..."
 if curl "https://app.velohero.com/export/workouts/csv" -F sso="$VELOHERO_SSO_KEY" -F last_change_epoch="$VELOHERO_LAST_TIMESTAMP" -o "$VELOHERO_EXPORT_LIST" --fail -A "$MY_USERAGENT" --compressed; then
-	# Add new line
-	echo >> "$VELOHERO_EXPORT_LIST"
+	echo >> "$VELOHERO_EXPORT_LIST"	# Add new line
 	echo
+	trap "rm \"$VELOHERO_EXPORT_LIST\" &> /dev/null" EXIT # schedule cleanup
 else
 	exit_with_failure "Can not download list of files to be exported."
 fi
 
 # Count workouts
-VH_WORKOUT_COUNT=0
-while IFS=';' read -r VH_WORKOUT_ID VH_WORKOUT_DATE || [[ -n "$VH_WORKOUT_MISC" ]]; do
-	if [[ "$VH_WORKOUT_ID" =~ ^[0-9]+$ ]]; then
-		VH_WORKOUT_COUNT="$((VH_WORKOUT_COUNT+1))"
-	fi
+declare -i VH_WORKOUT_COUNT=0
+while IFS=';' read -r VH_WORKOUT_ID VH_WORKOUT_DATE _ || [[ -n "$VH_WORKOUT_MISC" ]]; do
+	[[ "$VH_WORKOUT_ID" =~ ^[0-9]+$ ]] && (( ++VH_WORKOUT_COUNT ))
 done <"$VELOHERO_EXPORT_LIST"
 
 if [ "$VH_WORKOUT_COUNT" -eq "0" ]; then
@@ -170,28 +182,22 @@ if [ "$VH_WORKOUT_COUNT" -eq "0" ]; then
 fi
 
 # Download workout file
-VH_DOWNLOAD_COUNT=0
-while IFS=';' read -r VH_WORKOUT_ID VH_WORKOUT_DATE VH_WORKOUT_STARTTIME VH_WORKOUT_DURATION || [[ -n "$VH_WORKOUT_MISC" ]]; do
+declare -i VH_DOWNLOAD_COUNT=0
+while IFS=';' read -r VH_WORKOUT_ID VH_WORKOUT_DATE VH_WORKOUT_STARTTIME VH_WORKOUT_DURATION _ || [[ -n "$VH_WORKOUT_MISC" ]]; do
 	if [[ "$VH_WORKOUT_ID" =~ ^[0-9]+$ ]]; then
-		VH_DOWNLOAD_COUNT="$((VH_DOWNLOAD_COUNT+1))"
-		echo "Download file $VH_DOWNLOAD_COUNT of $VH_WORKOUT_COUNT with ID $VH_WORKOUT_ID ($VH_WORKOUT_DATE $VH_WORKOUT_STARTTIME). Please wait..."
+		(( ++VH_DOWNLOAD_COUNT ))
+		echo "Downloading file $VH_DOWNLOAD_COUNT of $VH_WORKOUT_COUNT with ID $VH_WORKOUT_ID ($VH_WORKOUT_DATE $VH_WORKOUT_STARTTIME). Please wait..."
 		# Export
-		export_activity "$VH_WORKOUT_ID" 'json'
-		export_activity "$VH_WORKOUT_ID" 'pwx'
-		# More export formats. Remove comment if you want to use it.
-		#export_activity "$VH_WORKOUT_ID" 'csv'
-		#export_activity "$VH_WORKOUT_ID" 'tcx'
-		#export_activity "$VH_WORKOUT_ID" 'gpx'
-		#export_activity "$VH_WORKOUT_ID" 'kml'
+		for FORMAT in $FORMATS; do
+			export_activity "$VH_WORKOUT_ID" "$FORMAT"
+		done
 		echo
 	fi
 done <"$VELOHERO_EXPORT_LIST"
 
-# Save last export timestamp
-echo "VELOHERO_LAST_TIMESTAMP=$MY_TIMESTAMP" > "$VELOHERO_LAST_EXPORT"
-
-# Clean up
-rm "$VELOHERO_EXPORT_LIST" &> "/dev/null"
+# Save previous and last export timestamp
+echo "VELOHERO_PREV_TIMESTAMP=$VELOHERO_LAST_TIMESTAMP" > "$VELOHERO_LAST_EXPORT"
+echo "VELOHERO_LAST_TIMESTAMP=$MY_TIMESTAMP" >> "$VELOHERO_LAST_EXPORT"
 
 echo
 echo "Done. All downloaded."
