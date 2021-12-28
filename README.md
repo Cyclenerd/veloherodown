@@ -33,15 +33,14 @@ VELOHERO_EXPORT_DIR=[specify location for export]
 
 Start export:
 
-    veloherodown
+    veloherodown [format]...
+    
+with format as one or a set of
+* `json`: Velo Hero generic format
+* `pwx` : Trainings Peaks PWX
+* `csv` : Comma-Seperated Values
+* `gpx` : GPX track
+* `kml` : Google Earth KML
+* `tcx` : Garmin TCX
 
-## Expert Tip
-
-In addition to PWX and JSON, there are other export formats:
-
-* CSV
-* GPX
-* Google Earth KML
-* Garmin TCX
-
-If you want to use the other export formats, you have to adjust the source code slightly. Everything is prepared. You only have to remove the comments (starting at line 150).
+The default format is JSON.
