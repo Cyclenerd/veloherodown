@@ -136,7 +136,7 @@ source "$HOME/.veloherorc"
 for FORMAT; do
 	case "$FORMAT" in
 		'json'|'pwx'|'csv'|'gpx'|'kml'|'tcx') [[ ! "$FORMATS" =~ $FORMAT ]] && FORMATS+="$FORMAT " ;;
-		*) exit_with_failure "Unknown format '$FORMAT'. Known formats are 'json', 'pwx', 'cvs', 'gpx', 'kml' and 'txc'."
+		*) exit_with_failure "Unknown format '$FORMAT'. Known formats are 'json', 'pwx', 'csv', 'gpx', 'kml' and 'tcx'."
 	esac
 done; FORMATS="${FORMATS:0:-1}"
 [ -z "$FORMATS" ] && FORMATS="json"
