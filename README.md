@@ -44,3 +44,7 @@ with format as one or a set of
 * `tcx` : Garmin TCX
 
 The default format is JSON.
+
+Example:
+
+    veloherodown json pwx
