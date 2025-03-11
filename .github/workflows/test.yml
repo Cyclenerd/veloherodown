@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    # https://github.com/actions/virtual-environments/
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout
+        uses: actions/checkout@v4
+
+      # https://github.com/marketplace/actions/setup-go-environment
+      - name: 🔧 Setup go
+        uses: actions/setup-go@v5
+
+      # https://github.com/marketplace/actions/run-golangci-lint
+      - name: 🌡️ Lint build
+        uses: golangci/golangci-lint-action@v6
+
+      - name: 🍳 Build
+        run: make native
+
+      - name: 🌡️ Test
+        run: ./veloherodown --help

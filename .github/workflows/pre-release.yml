@@ -1,0 +1,72 @@
+name: Pre-release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    # https://github.com/actions/virtual-environments/
+    runs-on: ubuntu-20.04
+    steps:
+
+      - name: 🛎️ Checkout
+        uses: actions/checkout@v4
+
+      # https://github.com/marketplace/actions/setup-go-environment
+      - name: 🔧 Setup go
+        uses: actions/setup-go@v5
+
+      - name: 🍳 Build
+        run: make
+
+      - name: 🌡️ Test
+        run: ./veloherodown --help
+
+      # Upload binaries
+      # https://github.com/marketplace/actions/upload-a-build-artifact
+      - name: 📤 Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: veloherodown-artifact
+          path: veloherodown-*
+          retention-days: 1
+
+  test-linux:
+    name: Test Linux
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Download binaries
+      # https://github.com/marketplace/actions/download-a-build-artifact
+      - name: 📥 Download
+        uses: actions/download-artifact@v4
+        with:
+          name: veloherodown-artifact
+      - name: 🌡️ Test
+        run: chmod +x veloherodown-linux-x86_64 && ./veloherodown-linux-x86_64 help
+
+  test-macos:
+    name: Test macOS
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - name: 📥 Download
+        uses: actions/download-artifact@v4
+        with:
+          name: veloherodown-artifact
+      - name: 🌡️ Test
+        run: chmod +x veloherodown-macos-x86_64 && ./veloherodown-macos-x86_64 --help
+
+  test-windows:
+    name: Test Windows
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: 📥 Download
+        uses: actions/download-artifact@v4
+        with:
+          name: veloherodown-artifact
+      # Test binary
+      - name: 🌡️ Test
+        run: .\veloherodown-windows-x86_64.exe --help

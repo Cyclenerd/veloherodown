@@ -1,0 +1,9 @@
+.velohero*
+*.csv
+*.exe
+*.gpx
+*.json
+*.kml
+*.pwx
+*.tcx
+veloherodown*
