@@ -1,5 +1,7 @@
 # veloherodown
 
+
+
 Create a local copy of your [Velo Hero](https://www.velohero.com/) data.
 
 ![Velo Hero Logo](https://www.velohero.com/static/touchicon.png)
@@ -14,13 +16,17 @@ The filename is the ID of the activity (`https://app.velohero.com/workouts/show/
 
 ## Setup
 
-1. Sign up at <https://app.velohero.com/sso>
-2. Get yourself a private single sign-on key. That's the long string.
-3. Create a `.veloherorc` file in the directory where you want to store your exports. Save the SSO key in this file::
-
-```ini
-VELOHERO_SSO_KEY=[insert your own]
-```
+1. Create a directory for your Velo Hero export
+1. Download the veloherodown application for your operating system and architecture
+1. Rename it to:
+    * `velohero` (macOS, Linux)
+    * `velohero.exe` (Windows)
+1. Go to <https://app.velohero.com/sso> to get your private single sign-on key
+1. Run the application - it will prompt you to enter your SSO key
+    * Alternatively, create a `.veloherorc` file in the directory with:
+        ```ini
+        VELOHERO_SSO_KEY=[insert your own]
+        ```
 
 ## Usage
 
@@ -32,12 +38,12 @@ veloherodown [FORMAT]
 
 Replace `[FORMAT]` with one or a set of
 
-* `json`: Velo Hero generic format
-* `pwx` : Trainings Peaks PWX
-* `csv` : Comma-Seperated Values
-* `gpx` : GPX track
-* `kml` : Google Earth KML
-* `tcx` : Garmin TCX
+* `json`: Velo Hero generic JSON format (with all details)
+* `pwx` : Training Peaks PWX file with laps (can be processed by Golden Cheetah)
+* `csv` : Comma-Seperated Values CSV file
+* `gpx` : GPX file (only the geo coordinates)
+* `kml` : Google Earth KML file
+* `tcx` : Garmin TCX file
 
 The default format is PWX.
 

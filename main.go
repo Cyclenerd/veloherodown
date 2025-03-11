@@ -406,9 +406,9 @@ OPTIONS:
   --help, -h,    Show this help message and exit
 
 FORMATS:
-  json           Velo Hero generic format (with all details)
+  json           Velo Hero generic JSON format (with all details)
   pwx            Training Peaks PWX file with laps (can be processed by Golden Cheetah)
-  csv            CSV file
+  csv            Comma-Seperated Values CSV file
   gpx            GPX file (only the geo coordinates)
   kml            Google Earth KML file
   tcx            Garmin TCX file
