@@ -29,12 +29,27 @@ func main() {
 	// Check configuration file
 	config, err := loadConfig()
 	if err != nil {
-		exitWithFailure(err.Error())
+		if strings.Contains(err.Error(), "configuration file not found") {
+			// Configuration file not found, prompt user for SSO key
+			config.SsoKey = promptForSsoKey()
+
+			// Save the SSO key to the configuration file
+			if err := saveSsoKey(config.SsoKey); err != nil {
+				exitWithFailure(fmt.Sprintf("Failed to save SSO key: %v", err))
+			}
+		} else {
+			exitWithFailure(err.Error())
+		}
 	}
 
 	// Test if SSO key is available
 	if config.SsoKey == "" {
 		echoSsoKeyHelp()
+	}
+
+	// Check login
+	if !checkSsoLogin(config.SsoKey) {
+		exitWithFailure("Login failed! Single Sign-on key not found or expired. Please get a new one.")
 	}
 
 	// Check if current directory is writable
@@ -77,11 +92,6 @@ func main() {
 		if err := os.WriteFile(lastExportFile, []byte("VELOHERO_LAST_TIMESTAMP=0\n"), 0644); err != nil {
 			exitWithFailure(fmt.Sprintf("Can not write file '%s'. The last download will be noted in this file.", lastExportFile))
 		}
-	}
-
-	// Check login
-	if !checkSsoLogin(config.SsoKey) {
-		exitWithFailure("Login failed! Single Sign-on key not found or expired. Please get a new one.")
 	}
 
 	// Get list
@@ -132,6 +142,27 @@ type Workout struct {
 	Date      string
 	StartTime string
 	Duration  string
+}
+
+// promptForSsoKey asks the user to input their SSO key
+func promptForSsoKey() string {
+	fmt.Println("No configuration file found.")
+	fmt.Println("Please go to https://app.velohero.com/sso to get your single sign-on key.")
+	fmt.Print("Enter your Velo Hero SSO key: ")
+
+	reader := bufio.NewReader(os.Stdin)
+	ssoKey, _ := reader.ReadString('\n')
+
+	// Trim whitespace and newlines
+	ssoKey = strings.TrimSpace(ssoKey)
+
+	return ssoKey
+}
+
+// saveSsoKey saves the SSO key to the configuration file
+func saveSsoKey(ssoKey string) error {
+	content := fmt.Sprintf("VELOHERO_SSO_KEY=%s\n", ssoKey)
+	return os.WriteFile(configFileName, []byte(content), 0644)
 }
 
 func loadConfig() (Config, error) {
