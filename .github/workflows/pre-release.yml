@@ -44,7 +44,7 @@ jobs:
         with:
           name: veloherodown-artifact
       - name: 🌡️ Test
-        run: chmod +x veloherodown-linux-x86_64 && ./veloherodown-linux-x86_64 help
+        run: chmod +x veloherodown-linux-x86_64 && ./veloherodown-linux-x86_64 --help
 
   test-macos:
     name: Test macOS
@@ -67,6 +67,5 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: veloherodown-artifact
-      # Test binary
       - name: 🌡️ Test
         run: .\veloherodown-windows-x86_64.exe --help
