@@ -26,4 +26,4 @@ jobs:
         run: make native
 
       - name: 🌡️ Test
-        run: veloherodown --help
+        run: ./veloherodown --help
