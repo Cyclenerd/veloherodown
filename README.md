@@ -17,7 +17,7 @@ The filename is the ID of the activity (`https://app.velohero.com/workouts/show/
 ## Setup
 
 1. Create a directory for your Velo Hero export
-1. Download the veloherodown application for your operating system and architecture
+1. [Download](https://github.com/Cyclenerd/veloherodown/releases/latest) the veloherodown application for your operating system and architecture
 1. Rename it to:
     * `velohero` (macOS, Linux)
     * `velohero.exe` (Windows)
