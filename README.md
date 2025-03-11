@@ -17,7 +17,16 @@ The filename is the ID of the activity (`https://app.velohero.com/workouts/show/
 ## Setup
 
 1. Create a directory for your Velo Hero export
-1. [Download](https://github.com/Cyclenerd/veloherodown/releases/latest) the veloherodown application for your operating system and architecture
+1. [Download](https://github.com/Cyclenerd/veloherodown/releases/latest) the veloherodown application for your operating system and CPU architecture
+    * <img src="https://www.microsoft.com/favicon.ico" width=16 height=16/> **Windows**
+        * [x86_64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-windows-x86_64.exe) Intel or AMD 64-Bit CPU
+        * [arm64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-windows-arm64.exe) Arm-based 64-Bit CPU
+    * <img src="https://developer.apple.com/favicon.ico" width=16 height=16/> **macOS**
+        * [x86_64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-macos-x86_64) Intel 64-bit CPU
+        * [arm64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-macos-arm64) Apple silicon 64-bit CPU (M1, M2...)
+    * <img src="https://www.kernel.org/theme/images/logos/favicon.png" width=16 height=16/> **Linux**
+        * [x86_64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-linux-x86_64) Intel or AMD 64-Bit CPU
+        * [arm64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-linux-x86_64) Arm-based 64-Bit CPU (i.e. Raspberry Pi)
 1. Rename it to:
     * `velohero` (macOS, Linux)
     * `velohero.exe` (Windows)
@@ -30,7 +39,13 @@ The filename is the ID of the activity (`https://app.velohero.com/workouts/show/
 
 ## Usage
 
-Start export:
+Windows:
+
+```bash
+veloherodown.exe [FORMAT]
+```
+
+macOS and Linux:
 
 ```bash
 veloherodown [FORMAT]
