@@ -1,15 +1,16 @@
 # veloherodown
 
-
-
 Create a local copy of your [Velo Hero](https://www.velohero.com/) data.
 
 ![Velo Hero Logo](https://www.velohero.com/static/touchicon.png)
 
-This Go application creates an export of your recorded activities at Velo Hero.
+This command line application creates an export of your recorded activities to Velo Hero.
+
 The first time all the files are downloaded.
 For further calls only changes and new files are downloaded.
+
 The export is stored in your chosen format(s): `JSON`, `PWX`, `CSV`, `GPX`, `KML`, or `TCX`.
+
 The JSON file contains all the details except the comments of other users.
 The PWX file also has many details and can be processed by [Golden Cheetah](http://www.goldencheetah.org/).
 The filename is the ID of the activity (`https://app.velohero.com/workouts/show/<ID>`).
@@ -17,7 +18,7 @@ The filename is the ID of the activity (`https://app.velohero.com/workouts/show/
 ## Setup
 
 1. Create a directory for your Velo Hero export
-1. [Download](https://github.com/Cyclenerd/veloherodown/releases/latest) the veloherodown application for your operating system and CPU architecture
+1. [Download](https://github.com/Cyclenerd/veloherodown/releases/latest) the veloherodown application for your operating system and CPU architecture. If you are unsure, usually `x86_64` will work.
     * <img src="https://www.microsoft.com/favicon.ico" width=16 height=16/> **Windows**
         * [x86_64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-windows-x86_64.exe) Intel or AMD 64-Bit CPU
         * [arm64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-windows-arm64.exe) Arm-based 64-Bit CPU
@@ -28,30 +29,63 @@ The filename is the ID of the activity (`https://app.velohero.com/workouts/show/
         * [x86_64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-linux-x86_64) Intel or AMD 64-Bit CPU
         * [arm64](https://github.com/Cyclenerd/veloherodown/releases/latest/download/veloherodown-linux-x86_64) Arm-based 64-Bit CPU (i.e. Raspberry Pi)
 1. Rename it to:
-    * `velohero` (macOS, Linux)
-    * `velohero.exe` (Windows)
+    * `veloherodown` (macOS, Linux)
+    * `veloherodown.exe` (Windows)
 1. Go to <https://app.velohero.com/sso> to get your private single sign-on key
 1. Run the application - it will prompt you to enter your SSO key
+    * Open a command line window (see below for instructions).
+    * Navigate to the folder where you saved `veloherodown`.
+    * Run the tool. It will ask you for your secret key. You can also create a file called `.veloherorc` in that folder and add the key there.
     * Alternatively, create a `.veloherorc` file in the directory with:
         ```ini
-        VELOHERO_SSO_KEY=[insert your own]
+        VELOHERO_SSO_KEY=[insert your SSO key]
         ```
 
 ## Usage
 
-Windows:
+This project require you to use a command-line interface.
+Don't worry, it's easier than it looks!
+Here's how to open one:
 
-```bash
-veloherodown.exe [FORMAT]
-```
+## Windows (PowerShell)
 
-macOS and Linux:
+1. Press the <kbd>Windows key</kbd> + <kbd>X</kbd>.
+1. Choose "Windows PowerShell".
+1. Type `cd` followed by the path to your folder (e.g., `cd C:\Users\YourName\Documents\VeloHero`) and press Enter.
+1. Type `veloherodown.exe` and press Enter.
 
-```bash
-veloherodown [FORMAT]
-```
+Screenshot:
 
-Replace `[FORMAT]` with one or a set of
+![Screenshot: Windows PowerShell](./img/veloherodown-windows.png)
+
+## macOS (Terminal)
+
+1. Press <kbd>Command</kbd> + <kbd>Space</kbd>.
+1. Type "Terminal" and press Enter.
+1. Type `cd` followed by the path to your folder (e.g., `cd /Users/YourName/Documents/VeloHero`) and press Enter.
+1. Type `chmod +x veloherodown` and press Enter. (This makes the tool work).
+1. Type `./veloherodown` and press Enter.
+
+Screenshot:
+
+![Screenshot: macOS Terminal](./img/veloherodown-macos.png)
+
+## Export Format
+
+You can choose what kind of files you want to save.
+
+**To use different formats:**
+
+* Windows:
+    ```powershell
+    veloherodown.exe [FORMAT]
+    ```
+* macOS and Linux:
+    ```bash
+    ./veloherodown [FORMAT]
+    ```
+
+Replace `[FORMAT]` with one or more of these:
 
 * `json`: Velo Hero generic JSON format (with all details)
 * `pwx` : Training Peaks PWX file with laps (can be processed by Golden Cheetah)
@@ -62,7 +96,7 @@ Replace `[FORMAT]` with one or a set of
 
 The default format is PWX.
 
-Example:
+Example (This saves your data in both JSON and PWX formats):
 
 ```bash
 veloherodown json pwx

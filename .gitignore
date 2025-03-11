@@ -7,3 +7,4 @@
 *.pwx
 *.tcx
 veloherodown*
+!img/veloherodown*
