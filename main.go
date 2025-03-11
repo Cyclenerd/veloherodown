@@ -26,6 +26,15 @@ type Config struct {
 }
 
 func main() {
+	// Check for help flags
+	if len(os.Args) > 1 {
+		arg := os.Args[1]
+		if arg == "--help" || arg == "-h" {
+			showHelp()
+			return
+		}
+	}
+
 	// Check configuration file
 	config, err := loadConfig()
 	if err != nil {
@@ -384,6 +393,44 @@ func exportActivity(ssoKey, workoutID, format string) {
 
 	// Give server a break
 	time.Sleep(time.Duration(downloadBreaktime) * time.Second)
+}
+
+// showHelp displays the usage information for the program
+func showHelp() {
+	fmt.Printf(`
+veloherodown - Download your Velo Hero data
+
+Usage: %s [OPTIONS] [FORMAT...]
+
+OPTIONS:
+  --help, -h,    Show this help message and exit
+
+FORMATS:
+  json           Velo Hero generic format (with all details)
+  pwx            Training Peaks PWX file with laps (can be processed by Golden Cheetah)
+  csv            CSV file
+  gpx            GPX file (only the geo coordinates)
+  kml            Google Earth KML file
+  tcx            Garmin TCX file
+
+If no format is specified, 'pwx' is used by default.
+Multiple formats can be specified to download in several formats.
+
+Examples:
+  %s             Download in PWX format
+  %s json        Download in JSON format
+  %s json pwx    Download in both JSON and PWX formats
+
+The first time all files are downloaded.
+For further calls only changes and new files are downloaded.
+All files are saved in the current working directory.
+
+Configuration:
+  The program looks for a '.veloherorc' file in the current directory.
+  If not found, it will prompt you to enter your SSO key.
+  You can get your SSO key at https://app.velohero.com/sso
+
+`, os.Args[0], os.Args[0], os.Args[0], os.Args[0])
 }
 
 func echoSsoKeyHelp() {
