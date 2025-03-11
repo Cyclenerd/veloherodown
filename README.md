@@ -58,6 +58,10 @@ Screenshot:
 
 ![Screenshot: Windows PowerShell](./img/veloherodown-windows.png)
 
+Video:
+
+https://github.com/user-attachments/assets/dc3cf10a-be99-40c6-a7cd-3b927109f025
+
 ## macOS (Terminal)
 
 1. Press <kbd>Command</kbd> + <kbd>Space</kbd>.
