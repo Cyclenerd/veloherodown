@@ -235,7 +235,6 @@ func checkSsoLogin(ssoKey string) bool {
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("User-Agent", myUserAgent)
-	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -263,7 +262,6 @@ func downloadWorkoutList(ssoKey string, lastTimestamp int64, outputFile string) 
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("User-Agent", myUserAgent)
-	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -315,7 +313,6 @@ func exportActivity(ssoKey, workoutID, format string) {
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("User-Agent", myUserAgent)
-	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
 	client := &http.Client{}
 
