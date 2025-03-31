@@ -66,7 +66,9 @@ func main() {
 	if err := os.WriteFile(testFile, []byte("test"), 0644); err != nil {
 		exitWithFailure("Can not write to current directory. Please correct this.")
 	}
-	os.Remove(testFile)
+	if err := os.Remove(testFile); err != nil {
+		exitWithFailure("Can not remove test file!")
+	}
 
 	// Get formats to export from command line
 	formats := parseFormats(os.Args[1:])
@@ -111,7 +113,11 @@ func main() {
 	if err := downloadWorkoutList(config.SsoKey, lastTimestamp, exportListFile); err != nil {
 		exitWithFailure("Can not download list of files to be exported.")
 	}
-	defer os.Remove(exportListFile)
+	defer func() {
+		if err := os.Remove(exportListFile); err != nil {
+			exitWithFailure("Can not remove list of files to be exported!")
+		}
+	}()
 
 	// Count workouts
 	workouts, err := parseWorkoutList(exportListFile)
@@ -233,7 +239,11 @@ func parseWorkoutList(filename string) ([]Workout, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			exitWithFailure(fmt.Sprintf("Error closing file: %v", err))
+		}
+	}()
 
 	var workouts []Workout
 	scanner := bufio.NewScanner(file)
@@ -266,7 +276,9 @@ func checkSsoLogin(ssoKey string) bool {
 	writer := multipart.NewWriter(&body)
 	_ = writer.WriteField("sso", ssoKey)
 	_ = writer.WriteField("view", "json")
-	writer.Close()
+	if err := writer.Close(); err != nil {
+		exitWithFailure(fmt.Sprintf("Error closing writer: %v", err))
+	}
 
 	req, err := http.NewRequest("POST", url, &body)
 	if err != nil {
@@ -281,7 +293,11 @@ func checkSsoLogin(ssoKey string) bool {
 	if err != nil {
 		return false
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			exitWithFailure(fmt.Sprintf("Error closing response body: %v", err))
+		}
+	}()
 
 	return resp.StatusCode == http.StatusOK
 }
@@ -293,7 +309,9 @@ func downloadWorkoutList(ssoKey string, lastTimestamp int64, outputFile string) 
 	writer := multipart.NewWriter(&body)
 	_ = writer.WriteField("sso", ssoKey)
 	_ = writer.WriteField("last_change_epoch", strconv.FormatInt(lastTimestamp, 10))
-	writer.Close()
+	if err := writer.Close(); err != nil {
+		exitWithFailure(fmt.Sprintf("Error closing writer: %v", err))
+	}
 
 	req, err := http.NewRequest("POST", url, &body)
 	if err != nil {
@@ -308,7 +326,11 @@ func downloadWorkoutList(ssoKey string, lastTimestamp int64, outputFile string) 
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			exitWithFailure(fmt.Sprintf("Error closing response body: %v", err))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("HTTP error: %d", resp.StatusCode)
@@ -318,7 +340,11 @@ func downloadWorkoutList(ssoKey string, lastTimestamp int64, outputFile string) 
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func() {
+		if err := out.Close(); err != nil {
+			exitWithFailure(fmt.Sprintf("Error closing output: %v", err))
+		}
+	}()
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
@@ -343,7 +369,9 @@ func exportActivity(ssoKey, workoutID, format string) {
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
 	_ = writer.WriteField("sso", ssoKey)
-	writer.Close()
+	if err := writer.Close(); err != nil {
+		exitWithFailure(fmt.Sprintf("Error closing writer: %v", err))
+	}
 
 	req, err := http.NewRequest("POST", url, &body)
 	if err != nil {
@@ -364,7 +392,9 @@ func exportActivity(ssoKey, workoutID, format string) {
 			break
 		}
 		if resp != nil {
-			resp.Body.Close()
+			if err := resp.Body.Close(); err != nil {
+				exitWithFailure(fmt.Sprintf("Error closing response body: %v", err))
+			}
 		}
 		time.Sleep(time.Duration(downloadBreaktime) * time.Second)
 	}
@@ -372,18 +402,28 @@ func exportActivity(ssoKey, workoutID, format string) {
 	if err != nil || resp.StatusCode != http.StatusOK {
 		fmt.Printf("Failed to download workout %s in format %s\n", workoutID, format)
 		if resp != nil {
-			resp.Body.Close()
+			if err := resp.Body.Close(); err != nil {
+				exitWithFailure(fmt.Sprintf("Error closing response body: %v", err))
+			}
 		}
 		return
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			exitWithFailure(fmt.Sprintf("Error closing response body: %v", err))
+		}
+	}()
 
 	out, err := os.Create(exportFile)
 	if err != nil {
 		fmt.Printf("Error creating file: %v\n", err)
 		return
 	}
-	defer out.Close()
+	defer func() {
+		if err := out.Close(); err != nil {
+			exitWithFailure(fmt.Sprintf("Error closing output: %v", err))
+		}
+	}()
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
