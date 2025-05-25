@@ -119,3 +119,7 @@ All files will be downloaded to the current directory where the `.veloherorc` fi
 ## Notes
 
 The application stores a tracking file `.velohero_last_export.do_not_remove` in the current directory to keep track of the last export timestamp. Do not delete this file if you want incremental updates.
+
+## License
+
+This project is licensed under the [GNU General Public License v3](./LICENSE).
