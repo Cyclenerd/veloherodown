@@ -16,7 +16,7 @@ jobs:
 
       # https://github.com/marketplace/actions/setup-go-environment
       - name: 🔧 Setup go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
 
       # https://github.com/marketplace/actions/run-golangci-lint
       - name: 🌡️ Lint
