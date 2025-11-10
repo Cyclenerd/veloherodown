@@ -20,7 +20,7 @@ jobs:
 
       # https://github.com/marketplace/actions/run-golangci-lint
       - name: 🌡️ Lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
 
       - name: 🍳 Build
         run: make native
