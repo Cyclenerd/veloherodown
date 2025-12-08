@@ -85,7 +85,7 @@ jobs:
       # Release, upload files
       # https://github.com/softprops/action-gh-release
       - name: ✨ Release
-        uses: softprops/action-gh-release@v2.4.2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
             veloherodown-linux-x86_64
