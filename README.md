@@ -70,6 +70,14 @@ https://github.com/user-attachments/assets/dc3cf10a-be99-40c6-a7cd-3b927109f025
 1. Type `chmod +x veloherodown` and press Enter. (This makes the tool work).
 1. Type `./veloherodown` and press Enter.
 
+(Optional) Allow unsigned app on macOS
+
+1. Go to System Settings
+1. Click on Privacy & Security
+1. Scroll down to Security section
+1. Look for a message about the blocked `veloherodown` app and click "Open Anyway"
+
+
 Screenshot:
 
 ![Screenshot: macOS Terminal](./img/veloherodown-macos.png)
